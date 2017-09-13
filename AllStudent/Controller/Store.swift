@@ -7,30 +7,30 @@
 //
 
 import Foundation
+import RxSwift
+import RxCocoa
+import Result
+
+func delay(_ timeInterval: TimeInterval, block: @escaping VoidBlock) {
+    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + timeInterval, execute: block)
+}
 
 class Store {
     
-    internal private(set) var students: [Student]!
+    internal private(set) var studentsVar = Variable([Student]())
     
     init() {
-        self.students = self.redStore()
+        self.redStore()
     }
     
     deinit {
         self.store()
     }
     
-    func item(at indexPath: IndexPath) -> Student {
-        return students[indexPath.row]
-    }
-    
     // 读取缓存
-    func redStore() -> [Student] {
-        let student1 = Student(name: "陈东", math: 90, chinese: 90, english: 90)
-        let student2 = Student(name: "王老", math: 80, chinese: 80, english: 80)
-        let student3 = Student(name: "马龟", math: 70, chinese: 70, english: 70)
+    func redStore() {
         let students = [student1, student2, student3]
-        return students
+        studentsVar.value = students
     }
     
     // 缓存数据
@@ -38,11 +38,26 @@ class Store {
         
     }
     
-    func refresh(success: Student.StudentsBlock, fail: VoidBlock) {
-        NetworkAPI().getAllStudent(success: {
-            self.students = $0
-            success($0)
-        }, fail: fail)
+    
+    // 刷新
+    var refreshSingle: Observable<Result<Void, RefreshDataFail>> {
+        return NetworkAPI().allStudentSingle
+            .map({
+                $0.map({
+                    self.studentsVar.value = $0
+                    return
+                })
+            })
     }
+
 }
 
+extension Store {
+    func item(at indexPath: IndexPath) -> Student {
+        return studentsVar.value[indexPath.row]
+    }
+    
+    func item(at index: Int) -> Student {
+        return studentsVar.value[index]
+    }
+}

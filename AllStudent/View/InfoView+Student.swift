@@ -11,10 +11,18 @@ import Foundation
 extension InfoView {
     convenience init(student: Student) {
         self.init()
-        nameLabel.text = student.name
-        scoreLabel.text = String(student.average)
-        showIndictorButton.setTitle("showIndictor", for: .normal)
+        self.uiConfigure(student: student)
     }
     
-    
+    private func uiConfigure(student: Student) {
+        topTitleLabel.text = student.name
+        subTitleOneLabel.text = "语文"
+        firstTextField.text = String(student.chinese)
+        subTitleTwoLabel.text = "数学"
+        secondTextField.text = String(student.math)
+        subTitleThreeLabel.text = "英语"
+        threeTextField.text = String(student.english)
+        button.setTitle("确定", for: .normal)
+    }
+
 }
